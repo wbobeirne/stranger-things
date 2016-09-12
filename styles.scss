@@ -1,0 +1,844 @@
+// Variables
+$desired-ratio-y: 9;
+$desired-ratio-x: 16;
+$desired-ratio: #{$desired-ratio-x} / #{$desired-ratio-y};
+$desired-ratio-multiplier: $desired-ratio-y / $desired-ratio-x;
+
+$color-bg: #000;
+$color-title: #C11B1F;
+$color-credits: #A8A6A7;
+$color-credits-top: #B2B0B1;
+$color-credits-bottom: $color-credits;
+
+$font-title: 'BenguiatITCW01-BoldCn';
+$font-credits: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+
+$title-fsize: 28vmin;
+$title-fsize-large: 34vmin;
+$title-spacing: -1.3vmin;
+$title-stroke: 0.4vmin;
+$title-shadow: 2vmin;
+
+$titlebar-height: 1vmin;
+$titlebar-border: 0.4vmin;
+$titlebar-shadow-outer: 1.2vmin;
+$titlebar-shadow-inner: 0.5vmin;
+$titlebar-radius: 0.1vmin;
+
+$credits-fsize: 6vmin;
+$credits-fsize-small: 4.6vmin;
+$credits-margin: 0vmin;
+$credits-speed: 3000ms;
+$credits-link-size: 12vmin;
+$credits-link-margin: 5vmin;
+$credits-shadow-offset: 0.3vmin;
+$credits-shadow-blur: 0.15vmin;
+
+/// Remove the unit of a length
+@function strip-unit($number) {
+  @if type-of($number) == 'number' and not unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+
+  @return $number;
+}
+
+// Ensure that things resize properly, even without the correct aspect ratio
+@mixin v-rule($rule, $vmin-val) {
+  $vw-val: '';
+
+  // Convert multiple args into the proper values, i.e. 10px 20px 5px
+  @if type-of($vmin-val) == 'list' {
+    @each $val in $vmin-val {
+      // 0 and 'auto' or 'none' don't like being mathed
+      @if type-of($val) == 'string' or type-of($val) == 'color' or unitless($val) {
+        $w-val: #{$vw-val} #{$val};
+      }
+      @else {
+        $vw-val: #{$vw-val} #{strip-unit($val * $desired-ratio-multiplier)}vw;
+      }
+    }
+  }
+  // Convert a regular single value, i.e. 100vmin
+  @else {
+    $vw-val: #{strip-unit($vmin-val * $desired-ratio-multiplier)}vw;
+  }
+
+  #{$rule}: $vmin-val;
+  @media screen and (max-aspect-ratio: $desired-ratio) {
+    #{$rule}: $vw-val;
+  }
+}
+
+// Simply center something
+@mixin centerize() {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+// Font
+@font-face {
+  font-family: $font-title;
+  src: url('../assets/BenguiatProITC-BoldCond.eot') format('embedded-opentype'),
+       url('../assets/BenguiatProITC-BoldCond.woff') format('woff'),
+       url('../assets/BenguiatProITC-BoldCond.ttf') format('truetype');
+  font-style: normal;
+  font-weight: bold;
+}
+
+// Styles
+body {
+  background: $color-bg;
+  text-align: center;
+  line-height: 1;
+  margin: 0;
+  -webkit-font-smoothing: subpixel-antialiased;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  *, *:before, *:after {
+    box-sizing: inherit;
+  }
+}
+
+.intro {
+  padding: 0 20px;
+  width: 100%;
+  max-width: 440px;
+  @include centerize;
+  transition: opacity 600ms ease, visibility 0ms linear 800ms;
+
+  &--hide {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  &-title {
+    font-family: $font-title;
+    color: $color-title;
+    font-size: 34px;
+  }
+
+  &-text {
+    text-align: center;
+    color: $color-credits;
+    font-size: 16px;
+    line-height: 22px;
+    font-family: $font-credits;
+    display: none;
+
+    &--show {
+      display: block;
+    }
+
+    &-button {
+      display: inline-block;
+      vertical-align: top;
+      cursor: pointer;
+      padding: 0;
+      margin: 20px 5px 0;
+      width: 160px;
+      height: 42px;
+      line-height: 42px;
+      border: none;
+      text-decoration: none;
+      font-size: 16px;
+      border-radius: 4px;
+      font-family: $font-credits;
+      background: $color-title;
+      color: #FFF;
+
+      &:hover {
+        background: darken($color-title, 10%);
+      }
+    }
+
+    &-play {
+      display: block;
+      cursor: pointer;
+      width: 120px;
+      height: 120px;
+      margin: 30px auto 0;
+      border: 4px solid #FFF;
+      font-size: 40px;
+      text-indent: 10px;
+      color: #FFF;
+      background: rgba(#555, 0.2);
+      opacity: 0.3;
+      border-radius: 100%;
+      transition: color 100ms ease, opacity 100ms ease;
+      transform: translateZ(0);
+
+      &:hover,
+      &:focus,
+      &:active {
+        opacity: 1;
+        color: $color-title;
+        outline: 0;
+      }
+    }
+  }
+}
+
+.viewport {
+  height: 100vh;
+  width: 100vw;
+  user-select: none;
+  display: none;
+
+  &--show {
+    display: block;
+  }
+}
+
+.title {
+  @include centerize;
+  transform: translateX(-50%) translateY(-45%);
+  width: 100%;
+  font-size: 0;
+  font-family: $font-title;
+  color: $color-bg;
+  letter-spacing: $title-spacing;
+  font-weight: bold;
+  display: none;
+
+  -webkit-text-stroke-color: $color-title;
+  @include v-rule(-webkit-text-stroke-width, $title-stroke);
+  @include v-rule(text-shadow, 0 0 $title-shadow rgba($color-title, 0.5));
+
+  .no-textstroke & {
+    text-shadow: 3px  0 $title-shadow $color-title,
+                -3px  0 $title-shadow $color-title,
+                 0 -3px $title-shadow $color-title,
+                 0  3px $title-shadow $color-title;
+  }
+
+  &--show {
+    display: block;
+  }
+
+  &-word {
+    position: relative;
+    display: inline-block;
+
+    &--second {
+      transform: translateY(-38%);
+    }
+
+    &-letter {
+      display: inline-block;
+      position: relative;
+      vertical-align: top;
+      @include v-rule(font-size, $title-fsize);
+
+      &-large {
+        display: inline-block;
+        transform: translateY(-2.8%);
+        @include v-rule(font-size, $title-fsize-large);
+      }
+    }
+  }
+}
+.titlebar {
+  position: absolute;
+  border-style: solid;
+  border-color: $color-title;
+  @include v-rule(height, $titlebar-height);
+  @include v-rule(border-width, $titlebar-border);
+  @include v-rule(border-radius, $titlebar-radius);
+  box-shadow: 0 0 $titlebar-shadow-outer rgba($color-title, 0.8),
+              0 0 $titlebar-shadow-inner rgba($color-title, 0.8) inset;
+
+  &--top {
+    bottom: 100%;
+    width: 100%;
+  }
+
+  &--left,
+  &--right {
+    top: 90%;
+  }
+
+  &--left {
+    left: 0;
+    right: -12%;
+  }
+  &--right {
+    left: -15%;
+    right: 0;
+  }
+}
+
+
+.credits {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-family: $font-credits;
+  font-weight: bold;
+  @include v-rule(font-size, $credits-fsize);
+
+
+  $wiggle: 0.015vmin;
+  @keyframes credits-wiggle {
+    0%  { transform: translateX(-50%) translateY(-50%) translateX(0)        translateY(0);        }
+    20% { transform: translateX(-50%) translateY(-50%) translateX(0)        translateY(-$wiggle); }
+    40% { transform: translateX(-50%) translateY(-50%) translateX($wiggle)  translateY(-$wiggle); }
+    60% { transform: translateX(-50%) translateY(-50%) translateX(0)        translateY($wiggle);  }
+    80% { transform: translateX(-50%) translateY(-50%) translateX(-$wiggle) translateY(0);        }
+    100%{ transform: translateX(-50%) translateY(-50%) translateX(-$wiggle) translateY($wiggle);  }
+  }
+  @keyframes credits-flash {
+    0%, 30%   { opacity: 1;    }
+    40%       { opacity: 0.97; }
+    42%, 85%  { opacity: 1;    }
+    92%       { opacity: 0.94; }
+    94%, 100% { opacity: 1;    }
+  }
+  &-group,
+  &-final {
+    @include centerize;
+    width: 90%;
+    opacity: 0;
+    transition: opacity $credits-speed * 0.1 ease;
+
+    &--show {
+      opacity: 1;
+      transition-delay: $credits-speed * 0.1;
+      animation: credits-wiggle 200ms infinite $credits-speed * 0.1,
+                 credits-flash 2200ms infinite $credits-speed * 0.1;
+    }
+  }
+
+  &-group {
+    &-credit,
+    &-sub {
+      position: relative;
+      @include v-rule(margin-bottom, $credits-margin);
+      color: $color-credits;
+      background: linear-gradient($color-credits-top, $color-credits-bottom);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+
+      .no-textstroke & {
+        background: none;
+        // Just in case
+        -webkit-background-clip: border-box;
+        -webkit-text-fill-color: currentcolor;
+      }
+
+      // Background clip text fill makes shadows not work, so put them in
+      // an :after element
+      &:after {
+        content: attr(data-text);
+        position: absolute;
+        z-index: -1;
+        width: 100%;
+        top: 0;
+        left: 0;
+        background: none;
+        text-shadow: $credits-shadow-offset
+                     $credits-shadow-offset
+                     $credits-shadow-blur #000;
+      }
+    }
+
+    &-credit {
+      font-weight: 800;
+      text-transform: uppercase;
+
+      > span {
+        @include v-rule(font-size, $credits-fsize * 0.8);
+      }
+    }
+
+    &-sub {
+      @include v-rule(font-size, $credits-fsize-small);
+    }
+  }
+
+  &-final {
+    @include centerize;
+
+    &-link {
+      display: inline-block;
+      @include v-rule(width, $credits-link-size);
+      @include v-rule(height, $credits-link-size);
+      @include v-rule(margin, $credits-link-margin);
+      background-size: 100% 100%;
+
+      &:hover {
+        opacity: 0.8;
+      }
+
+      &--website {
+        background-image: url("../assets/website.svg");
+      }
+
+      &--github {
+        background-image: url("../assets/github.svg");
+      }
+
+      &--twitter {
+        background-image: url("../assets/twitter.svg");
+      }
+
+      &--codepen {
+        background-image: url("../assets/codepen.svg");
+      }
+    }
+  }
+}
+
+.grain {
+  @keyframes grain-wiggle {
+    0%  { transform: translateX(8%)   translateY(-5%);  }
+    10% { transform: translateX(0%)   translateY(0%);   }
+    20% { transform: translateX(10%)  translateY(-15%); }
+    30% { transform: translateX(-10%) translateY(0%);   }
+    40% { transform: translateX(25%)  translateY(15%);  }
+    50% { transform: translateX(10%)  translateY(-10%); }
+    60% { transform: translateX(-5%)  translateY(5%);   }
+    70% { transform: translateX(15%)  translateY(0%);   }
+    80% { transform: translateX(-20%) translateY(-10%); }
+    90% { transform: translateX(20%)  translateY(15%);  }
+    100%{ transform: translateX(4%)   translateY(7%);   }
+  }
+
+  position: fixed;
+  top: -50vh;
+  left: -50vw;
+  height: 200vh;
+  width: 200vw;
+  background: url("../assets/grain.png");
+  animation: grain-wiggle 5s steps(10) infinite;
+  pointer-events: none;
+}
+
+.letterbox {
+  @include centerize;
+  position: fixed;
+  height: 100vh;
+  width: 100vh / $desired-ratio-multiplier;
+  pointer-events: none;
+  display: none;
+
+  &--show {
+    display: block;
+  }
+
+  @media screen and (max-aspect-ratio: $desired-ratio) {
+    height: 100vw * $desired-ratio-multiplier;
+    width: 100vw;
+  }
+
+  &-cover {
+    // Arbitrarily large
+    position: absolute;
+    width: 5000px;
+    height: 5000px;
+    background: #000;
+
+    &--top,
+    &--bottom {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    &--left,
+    &--right {
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    &--top {
+      bottom: 100%;
+    }
+
+    &--left {
+      right: 100%;
+    }
+
+    &--right {
+      left: 100%;
+    }
+
+    &--bottom {
+      top: 100%;
+    }
+  }
+}
+
+
+// Title Animations
+@mixin letter($letter: null, $scale: null) {
+  $selector: "data-letter";
+  @if $letter != null {
+    $selector: '#{$selector}="#{$letter}"';
+  }
+
+  .title-word-letter[#{$selector}] {
+    @if $scale != null {
+      @include v-rule(font-size, $title-fsize * $scale);
+
+      .textstroke & {
+        @include v-rule(text-shadow, 0 0 $title-shadow * $scale rgba($color-title, 0.5));
+        @include v-rule(-webkit-text-stroke-width, $title-stroke * $scale);
+      }
+    }
+
+    @content;
+  }
+
+  @if $letter == null and $scale != null {
+    .title-word-letter[#{$selector}] .title-word-letter-large {
+      @include v-rule(font-size, $title-fsize-large * $scale);
+    }
+  }
+}
+
+@mixin scaled-bar($scale) {
+  @include v-rule(height, $titlebar-height * $scale);
+  @include v-rule(border-width, $titlebar-border * $scale);
+  @include v-rule(border-radius, $titlebar-radius * $scale);
+  box-shadow: 0 0 $titlebar-shadow-outer * $scale rgba($color-title, 0.8),
+              0 0 $titlebar-shadow-inner * $scale rgba($color-title, 0.8) inset;
+}
+
+.title {
+  &--scene {
+    .title-word {
+      @include centerize;
+    }
+  }
+
+  &--scene1 {
+    @keyframes scene1 {
+      0%   { transform: translateX(-43.85%) translateY(-40%) scale(2.2);   }
+      100% { transform: translateX(-43.85%) translateY(-40%) scale(1); }
+    }
+
+    @include letter("A", 60) {
+      @include centerize;
+      animation: scene1 7000ms ease-out forwards;
+      transform-origin: 43.85% 40%;
+    }
+  }
+
+  &--scene2 {
+    @keyframes scene2-word {
+      0%   { transform: translateX(-68%) translateY(-41%); }
+      100% { transform: translateX(-68%) translateY(-38%); }
+    }
+    @keyframes scene2-letter {
+      0%   { transform: scale(1); }
+      100% { transform: scale(0.92); }
+    }
+
+    .title-word {
+      animation: scene2-word 3000ms linear forwards;
+    }
+
+    @include letter("N", 20) {
+      animation: scene2-letter 3000ms linear forwards;
+      transform-origin: 68.4% 40%;
+    }
+  }
+
+  &--scene3 {
+    @keyframes scene3-r {
+      0%   { transform: translateX(-78%) translateY(-30%) scale(0.95);   }
+      100% { transform: translateX(-81%) translateY(-30%) scale(0.84); }
+    }
+    @keyframes scene3-i {
+      0%   { transform: translateX(15%) translateY(-50%);  }
+      100% { transform: translateX(35%) translateY(-50%); }
+    }
+
+    @include letter("R", 23) {
+      @include centerize;
+      animation: scene3-r 3000ms linear forwards;
+      transform-origin: 75% 27%;
+    }
+    @include letter("I", 23) {
+      @include centerize;
+      animation: scene3-i 3000ms linear forwards;
+    }
+  }
+
+  &--scene4 {
+    @keyframes scene4-word {
+      0%   { transform: translateX(-50%) translateY(-50%) scale(1); }
+      100% { transform: translateX(-50%) translateY(-50%) scale(0.9); }
+    }
+    @keyframes scene4-s {
+      0%   { transform: translateX(-53%) translateY(-11%); }
+      100% { transform: translateX(-65%) translateY(-11%); }
+    }
+    @keyframes scene4-g {
+      0%   { transform: translateX(-42%) translateY(-90%); }
+      100% { transform: translateX(-34%) translateY(-90%); }
+    }
+
+    .title-word {
+      animation: scene4-word 3000ms linear forwards;
+    }
+
+    @include letter("S", 18) {
+      @include centerize;
+      animation: scene4-s 3000ms linear forwards;
+    }
+    @include letter("G", 18) {
+      @include centerize;
+      animation: scene4-g 3000ms linear forwards;
+    }
+  }
+
+  &--scene5 {
+    @keyframes scene5-r {
+      0%   { transform: translateX(-118%) translateY(-30%); }
+      100% { transform: translateX(-112%) translateY(-34%); }
+    }
+    @keyframes scene5-s { 
+      0%   { transform: translateX(-19%) translateY(-28.5%); }
+      100% { transform: translateX(-22%) translateY(-32%);   }
+    }
+
+    @include letter("R", 14) {
+      @include centerize;
+      animation: scene5-r 3000ms linear forwards;
+    }
+    @include letter("S", 14) {
+      @include centerize;
+      animation: scene5-s 3000ms linear forwards;
+    }
+  }
+
+  &--scene6 {
+    @keyframes scene6-fade-out {
+      0%, 40%   { opacity: 1; }
+      85%, 100% { opacity: 0; }
+    }
+    @keyframes scene6-i {
+      0%        { transform: translateX(-105%) translateY(-91%); };
+      85%, 100% { transform: translateX(-135%) translateY(-85%); };
+    }
+    @keyframes scene6-a {
+      0%        { transform: translateX(14%) translateY(-91%); };
+      85%, 100% { transform: translateX(34%) translateY(-85%); };
+    }
+    @keyframes scene6-t {
+      0%        { transform: translateX(-134%) translateY(-7%); };
+      85%, 100% { transform: translateX(-111%) translateY(-1%); };
+    }
+    @keyframes scene6-h {
+      0%        { transform: translateX(24%) translateY(-7%); };
+      85%, 100% { transform: translateX(15%) translateY(-1%); };
+    }
+
+    @keyframes scene6-fade-in {
+      0%, 40%   { opacity: 0; }
+      85%, 100% { opacity: 1; }
+    }
+    @keyframes scene6-n {
+      0%, 40% { transform: translateX(-170%) translateY(-50%); }
+      100%    { transform: translateX(-147%) translateY(-50%); }
+    }
+    @keyframes scene6-g {
+      0%, 40% { transform: translateX(82%) translateY(-50%); }
+      100%    { transform: translateX(49%) translateY(-50%);  }
+    }
+
+    @include letter("I", 8) {
+      @include centerize;
+      animation: scene6-i        6000ms linear forwards,
+                 scene6-fade-out 6000ms linear forwards;
+    }
+    @include letter("A", 8) {
+      @include centerize;
+      animation: scene6-a        6000ms linear forwards,
+                 scene6-fade-out 6000ms linear forwards;
+    }
+    @include letter("T", 8) {
+      @include centerize;
+      animation: scene6-t        6000ms linear forwards,
+                 scene6-fade-out 6000ms linear forwards;
+    }
+    @include letter("H", 8) {
+      @include centerize;
+      animation: scene6-h        6000ms linear forwards,
+                 scene6-fade-out 6000ms linear forwards;
+    }
+
+    @include letter("N", 3) {
+      @include centerize;
+      animation: scene6-n       6000ms linear forwards,
+                 scene6-fade-in 6000ms linear forwards;
+    }
+    @include letter("G", 3) {
+      @include centerize;
+      animation: scene6-g       6000ms linear forwards,
+                 scene6-fade-in 6000ms linear forwards;
+    }
+  }
+
+  &--full {
+    @keyframes full-title {
+      0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-41%) scale(0.8);
+      }
+      90% { opacity: 1; }
+      100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-45%) scale(0.06);
+      }
+    }
+
+    // First word
+    @keyframes full-s1 {
+      0%, 50%   { transform: translateX(-200%); }
+      76%, 100% { transform: translateX(0%);    }
+    }
+    @keyframes full-t1 {
+      0%, 40%   { transform: translateY(-120%); }
+      75%, 100% { transform: translateY(0%);    }
+    }
+    @keyframes full-r1 {
+      0%, 25%   { transform: translateX(-55%); }
+      72%, 100% { transform: translateX(0%);   }
+    }
+    @keyframes full-a {
+      0%        { transform: translateX(-15%); }
+      40%, 100% { transform: translateX(0%);   }
+    }
+    @keyframes full-n1 {
+      0%        { transform: translateX(15%); }
+      40%, 100% { transform: translateX(0%);  }
+    }
+    @keyframes full-g1 {
+      0%        { transform: translateX(30%); }
+      55%, 100% { transform: translateX(0%);  }
+    }
+    @keyframes full-e {
+      0%, 50%   { transform: translateY(-120%); }
+      75%, 100% { transform: translateY(0%);    }
+    }
+    @keyframes full-r2 {
+      0%, 45%   { transform: translateX(200%); }
+      71%, 100% { transform: translateX(0%);    }
+    }
+
+    // Second word
+    @keyframes full-t2 {
+      0%, 30%   { transform: translateX(-80%); }
+      60%, 100% { transform: translateX(0%);   }
+    }
+    @keyframes full-h {
+      0%, 36%   { transform: translateY(200%); }
+      76%, 100% { transform: translateY(0%);   }
+    }
+    @keyframes full-i {
+      0%, 25%   { transform: translateX(-70%); }
+      75%, 100% { transform: translateX(0%);   }
+    }
+    @keyframes full-n2 {
+      0%, 10%   { transform: translateY(70%); }
+      40%, 100% { transform: translateY(0%);   }
+    }
+    @keyframes full-g2 {
+      0%        { transform: translateX(30%); }
+      45%, 100% { transform: translateX(0%);  }
+    }
+    @keyframes full-s2 {
+      0%, 40%   { transform: translateY(200%); }
+      80%, 100% { transform: translateY(0%);   }
+    }
+
+    // Bars
+    @keyframes full-bar-top {
+      0%, 67%   { transform: scaleX(0); }
+      72%, 100% { transform: scaleX(1); }
+    }
+    @keyframes full-bar-side {
+      0%, 70%   { transform: scaleX(0); }
+      75%, 100% { transform: scaleX(1); }
+    }
+
+    width: 1000vw;
+    animation: full-title 20s cubic-bezier(0.15, 0.7, 0.26, 0.88) forwards;
+    transform-origin: 50% 45%;
+
+    @include letter(null, 10);
+    @include letter("S1") {
+      animation: full-s1 20s ease forwards;
+    }
+    @include letter("T1") {
+      animation: full-t1 20s ease forwards;
+    }
+    @include letter("R1") {
+      animation: full-r1 20s ease forwards;
+    }
+    @include letter("A") {
+      animation: full-a 20s ease forwards;
+    }
+    @include letter("N1") {
+      letter-spacing: -15vmin;
+      animation: full-n1 20s ease forwards;
+    }
+    @include letter("G1") {
+      animation: full-g1 20s ease forwards;
+    }
+    @include letter("E") {
+      animation: full-e 20s ease forwards;
+    }
+    @include letter("R2") {
+      animation: full-r2 20s ease forwards;
+    }
+
+    @include letter("T2") {
+      animation: full-t2 20s ease forwards;
+    }
+    @include letter("H") {
+      animation: full-h 20s ease forwards;
+    }
+    @include letter("I") {
+      animation: full-i 20s ease forwards;
+    }
+    @include letter("N2") {
+      letter-spacing: -15vmin;
+      animation: full-n2 20s ease forwards;
+    }
+    @include letter("G2") {
+      animation: full-g2 20s ease forwards;
+    }
+    @include letter("S2") {
+      animation: full-s2 20s ease forwards;
+    }
+
+    .titlebar {
+      @include scaled-bar(10);
+
+      &--top {
+        animation: full-bar-top 20s ease forwards;
+      }
+
+      &--left,
+      &--right {
+        animation: full-bar-side 20s ease forwards;
+      }
+
+      &--left {
+        transform-origin: right;
+      }
+
+      &--right {
+        transform-origin: left;
+      }
+    }
+  }
+}
