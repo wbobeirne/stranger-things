@@ -52,3 +52,5 @@ gotten remotely close to with CSS, but some [other
 projects](http://makeitstranger.com/) show that SVG can provide a lot of cool
 effects for dynamic text, with great browser compatibility to boot. But again,
 for me that would have felt like cheating on this particular challenge.
+
+### There is no claim to the intellectual property of Stranger Things
